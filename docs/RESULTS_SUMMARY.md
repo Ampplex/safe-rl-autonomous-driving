@@ -16,7 +16,7 @@ The initial 100-episode comparison suggested that Safe PPO with `lambda=0.1` red
 
 TensorBoard rollout logs show that PPO learned during training: mean episode reward increased from 7.95 to 21.00, and mean episode length increased from 10.75 to 29.34. This is reported as training rollout performance, not held-out validation performance.
 
-### Multi-Seed Validation
+### Multi-Seed Evaluation Diagnostic
 
 A stricter deterministic benchmark was then run at density 50:
 

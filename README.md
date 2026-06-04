@@ -67,7 +67,7 @@ Lambda Ablation
     ↓
 Training Rollout Analysis
     ↓
-Multi-Seed Robustness Validation
+Multi-Seed Evaluation Diagnostic
     ↓
 OOD Stress Testing
     ↓
@@ -85,7 +85,7 @@ Analysis & Visualization
 * Evaluated policy robustness across varying traffic densities.
 * Performed out-of-distribution stress testing up to 10× the training traffic density.
 * Visualized PPO training rollout reward and episode length from TensorBoard logs.
-* Added multi-seed validation and statistical checks to avoid overclaiming from single-run results.
+* Added a multi-seed evaluation diagnostic and statistical checks to avoid overclaiming from single-run results.
 * Built a reproducible experiment pipeline using Stable-Baselines3, MLflow, TensorBoard, and automated evaluation tooling.
 
 ---
@@ -140,7 +140,7 @@ Evaluation Protocol:
 - Traffic density generalization: 50 episodes per density
 - OOD robustness at 150-300 vehicles: 35 episodes per density
 - Training rollout progress: TensorBoard rollout metrics
-- Multi-seed validation: 5 seed groups × 20 episodes
+- Multi-seed evaluation diagnostic: 5 seed groups × 20 episodes
 - Metrics averaged across episodes with confidence intervals where applicable
 
 Primary Metrics:
@@ -196,7 +196,7 @@ Different safety penalty weights were evaluated to understand the safety-efficie
 
 ![Lambda Ablation Study](results/plots/lambda_ablation.png)
 
-**Key Observation:** In the single-run ablation, smaller safety penalties produced the strongest safety metrics, while larger penalties showed diminishing returns.
+**Key Observation:** In the single-run ablation, λ=0.1 produced the strongest observed safety-efficiency tradeoff, while larger penalties showed diminishing returns.
 
 ![Efficiency Invariance](results/plots/efficiency_tradeoff.png)
 
@@ -214,9 +214,9 @@ Training rollout metrics were extracted from TensorBoard logs to show policy lea
 
 ---
 
-### Experiment 5: Multi-Seed Robustness Validation
+### Experiment 5: Multi-Seed Evaluation Diagnostic
 
-The deterministic density-50 multi-seed benchmark was used as a validation check rather than a superiority claim. It showed identical aggregate safety metrics for PPO and Safe PPO under this specific protocol, so the final analysis avoids claiming statistical significance from that setting.
+The deterministic density-50 multi-seed benchmark was used as a diagnostic check rather than a superiority claim. It showed identical aggregate safety metrics for PPO and Safe PPO under this specific protocol, so the final analysis avoids claiming statistical significance from that setting.
 
 ![Multi-Seed Comparison](results/supplementary/multi_seed_comparison.png)
 
@@ -512,7 +512,7 @@ Establish the relationship between safety constraint intensity and driving behav
 | 1.0 | 3.0% | 10.0% | 97% | 20.01 m/s |
 | 2.0 | 2.0% | 14.2% | 98% | 20.02 m/s |
 
-**Analysis:** In the single-run ablation, λ=0.1 produced the lowest collision and tailgating rates while maintaining average speed. The later multi-seed validation is reported separately to avoid overclaiming this single-run result.
+**Analysis:** In the single-run ablation, λ=0.1 produced the strongest observed safety-efficiency tradeoff while maintaining average speed. The later multi-seed diagnostic is reported separately to avoid overclaiming this single-run result.
 
 ---
 
@@ -539,11 +539,11 @@ A separate checkpoint evaluation curve was tested using held-out evaluation seed
 
 ---
 
-# 🧪 Experiment 5: Multi-Seed Robustness Validation
+# 🧪 Experiment 5: Multi-Seed Evaluation Diagnostic
 
 ## Objective
 
-Validate the PPO vs Safe PPO comparison under repeated deterministic evaluation seeds and quantify whether the observed differences remain statistically distinguishable.
+Test the PPO vs Safe PPO comparison under repeated deterministic evaluation seeds and quantify whether the observed differences remain statistically distinguishable.
 
 ## Results
 
@@ -553,7 +553,7 @@ Validate the PPO vs Safe PPO comparison under repeated deterministic evaluation 
 | Tailgating Rate | 13.6% | 13.6% | 0.500 | No |
 | Safety Violation Score | 0.336 | 0.336 | 0.500 | No |
 
-**Analysis:** This validation run did not support a statistically significant PPO vs Safe PPO difference under the deterministic density-50 multi-seed protocol. The result is treated as an important methodological check: the strongest claims are therefore based on the initial controlled benchmark, λ-ablation behavior, and OOD robustness analysis rather than this insensitive deterministic benchmark.
+**Analysis:** This diagnostic run did not support a statistically significant PPO vs Safe PPO difference under the deterministic density-50 multi-seed protocol. The result is treated as an important methodological check: the strongest claims are therefore based on the initial controlled benchmark, single-run λ-ablation behavior, and OOD robustness analysis rather than this insensitive deterministic benchmark.
 
 # 🧪 Experiment 6: Out-of-Distribution Robustness Testing
 
@@ -585,7 +585,7 @@ Evaluation episode counts vary by experiment:
 | Traffic Density Generalization | 50 episodes per density |
 | Safety Weight Ablation | 100 episodes per λ |
 | Training Rollout Learning Dynamics | TensorBoard rollout scalars |
-| Multi-Seed Robustness Validation | 5 seed groups × 20 episodes |
+| Multi-Seed Evaluation Diagnostic | 5 seed groups × 20 episodes |
 | OOD Robustness | 35 episodes per density for 150-300 vehicles |
 
 ---
