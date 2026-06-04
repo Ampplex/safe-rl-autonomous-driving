@@ -53,9 +53,10 @@ That negative result is valuable: it shows experimental rigor, prevents overclai
 ## Key Figures
 
 - `results/plots/lambda_ablation.png`
-- `results/plots/multi_seed_comparison.png`
 - `results/plots/learning_dynamics.png`
 - `results/plots/performance_heatmap.png`
 - `results/plots/ood_stress_test.png`
-- `results/plots/radar_comparison.png`
-- `results/plots/reward_component_breakdown.png`
+- `results/plots/density_robustness.png`
+- `results/plots/efficiency_tradeoff.png`
+
+Supplementary analysis figures are stored in `results/supplementary/`.

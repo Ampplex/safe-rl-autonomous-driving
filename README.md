@@ -89,7 +89,7 @@ Analysis & Visualization
 
 ### Safety Improvement without Efficiency Loss
 
-In the initial controlled benchmark, compared with the baseline PPO agent, the Safety-Constrained PPO agent achieved:
+In the initial controlled benchmark, compared with the baseline PPO agent, the Safety-Constrained PPO agent demonstrated:
 
 * Up to 60% reduction in collision rate (5.0% → 2.0%)
 * Up to 44% reduction in tailgating rate (15.3% → 8.5%)
@@ -116,6 +116,26 @@ The policy was trained on environments containing 30 vehicles and evaluated on e
 | 300     |       97.14% |          2.86% |
 
 The agent maintained success rates above 94% across all evaluated out-of-distribution scenarios while preserving average driving speed.
+
+---
+
+## Experimental Design
+
+Training Environment:
+- HighwayEnv `highway-v0`
+- 30 traffic vehicles
+- PPO and Safe PPO trained for 200k timesteps
+
+Evaluation Protocol:
+- 100 episodes per experiment
+- Fixed evaluation seeds
+- Metrics averaged across episodes
+
+Primary Metrics:
+- Collision Rate
+- Tailgating Rate
+- Success Rate
+- Average Speed
 
 ---
 
@@ -533,7 +553,7 @@ Establish the relationship between safety constraint intensity and driving behav
 | 1.0 | 3.0% | 10.0% | 97% | 20.01 m/s |
 | 2.0 | 2.0% | 14.2% | 98% | 20.02 m/s |
 
-**Analysis:** The ablation suggested λ=0.1 as the strongest safety setting in the initial benchmark, reducing collisions and tailgating while maintaining average speed.
+**Analysis:** The ablation suggested λ=0.1 as the best-performing setting in this benchmark, reducing collisions and tailgating while maintaining average speed.
 
 ---
 
@@ -567,7 +587,6 @@ for every experiment.
 # Safety Metrics
 
 * Collision Rate
-* Near Collision Rate
 * Tailgating Rate
 * Unsafe Lane Changes
 
@@ -577,7 +596,6 @@ for every experiment.
 
 * Success Rate
 * Average Speed
-* Average Reward
 * Survival Time
 
 ---
