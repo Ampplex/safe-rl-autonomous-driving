@@ -24,6 +24,28 @@
 
 ---
 
+# 🔗 Repository Links
+
+Suggested repository name:
+
+```text
+safe-rl-autonomous-driving
+```
+
+Supporting docs:
+
+* [Repository Guide](docs/REPOSITORY_GUIDE.md)
+* [Reproducibility](docs/REPRODUCIBILITY.md)
+* [Results Summary](docs/RESULTS_SUMMARY.md)
+
+Core reproduction command:
+
+```bash
+scripts/run_core_evaluation.sh
+```
+
+---
+
 # 🎯 Problem Statement
 
 Autonomous vehicles must make sequential driving decisions while balancing:
