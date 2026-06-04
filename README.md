@@ -1,14 +1,11 @@
 # 🚗 Safe Reinforcement Learning for Autonomous Driving
 
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![RL](https://img.shields.io/badge/Reinforcement-Learning-green)
+![PPO](https://img.shields.io/badge/Algorithm-PPO-orange)
+![MLflow](https://img.shields.io/badge/Tracking-MLflow-red)
+
 **Reward-Shaped Safety Constraints, Robustness Analysis, and Out-of-Distribution Generalization using PPO in HighwayEnv**
-
-<p align="center">
-  <img src="results/plots/ood_stress_test.png" width="700">
-</p>
-
-<p align="center">
-  <b>Safe PPO generalized from training on 30-vehicle traffic to evaluation under 300-vehicle traffic (10× density shift) while maintaining 94–97% success rates and stable driving efficiency.</b>
-</p>
 
 ## At a Glance
 
@@ -21,6 +18,16 @@
 | Lowest Success Rate | 94.29% |
 | Collision Rate Range | 2.86% – 5.71% |
 | Average Speed | ~20 m/s |
+
+<p align="center">
+  <img src="results/plots/ood_stress_test.png" width="700">
+</p>
+
+<p align="center">
+  <b>Safe PPO generalized from training on 30-vehicle traffic to evaluation under 300-vehicle traffic (10× density shift) while maintaining 94–97% success rates and stable driving efficiency.</b>
+</p>
+
+This repository presents a safety-aware reinforcement learning framework for autonomous driving, emphasizing reward shaping, safety-efficiency tradeoffs, and out-of-distribution robustness evaluation under large traffic-density shifts.
 
 ## Safety-Constrained Policy Optimization under Dynamic Traffic Conditions
 
@@ -158,6 +165,23 @@ The resulting framework provides a reproducible platform for investigating safet
 
 ---
 
+## Quick Start
+
+```bash
+git clone https://github.com/Ampplex/safe-rl-autonomous-driving.git
+cd safe-rl-autonomous-driving
+pip install -r requirements.txt
+python training/train_safeppo.py
+```
+
+For the full core evaluation pipeline:
+
+```bash
+scripts/run_core_evaluation.sh
+```
+
+---
+
 ## Results
 
 ### Experiment 1: PPO vs Safe PPO
@@ -172,7 +196,7 @@ The detailed comparison table is included in Experiment 1 below.
 
 The policy was trained on 30-vehicle traffic and evaluated under up to 300-vehicle traffic, representing a 10× density shift.
 
-The cover figure summarizes the headline OOD stress-test result.
+![OOD Stress Test](results/plots/ood_stress_test.png)
 
 **Key Observation:** The policy maintained success rates above 94% across all tested OOD scenarios while preserving average driving speed.
 
@@ -204,11 +228,11 @@ Different safety penalty weights were evaluated to understand the safety-efficie
 
 ### Experiment 5: Training Dynamics Analysis
 
-Training curves provide context for policy convergence and learning stability.
+Representative learning-dynamics curves provide context for policy convergence and learning stability.
 
 ![Learning Dynamics](results/plots/learning_dynamics.png)
 
-**Key Observation:** The learning curves show reward and collision-rate dynamics over training, making convergence behavior visible rather than relying only on final aggregate metrics.
+**Key Observation:** The representative curves summarize reward and collision-rate dynamics over training, making convergence behavior visible rather than relying only on final aggregate metrics.
 
 ---
 
@@ -448,8 +472,8 @@ Compare a standard PPO agent against a Safety-Constrained PPO agent using a safe
 
 | Metric | Baseline PPO | Safe PPO ($\lambda=0.1$) | Change |
 | :--- | :---: | :---: | :--- |
-| Collision Rate | 5.0% | 2.0% | 60% reduction |
-| Tailgating Rate | 15.3% | 8.5% | 44% reduction |
+| Collision Rate | 5.0% | 2.0% | Up to 60% reduction |
+| Tailgating Rate | 15.3% | 8.5% | Up to 44% reduction |
 | Success Rate | 95.0% | 98.0% | +3.0 pp |
 | Avg Speed | 20.01 m/s | 20.02 m/s | Maintained |
 | Avg Survival Time | 29.37s | 29.71s | +1.2% |
@@ -523,7 +547,7 @@ Compare PPO and Safe PPO learning dynamics using representative reward and colli
 
 * Baseline PPO shows faster reward convergence early in training.
 * Safe PPO shows a slower initial reward trajectory as safety penalties are introduced.
-* The learning-curve figure provides training context beyond final aggregate scores.
+* The representative learning-curve figure provides training context beyond final aggregate scores.
 
 
 ---
