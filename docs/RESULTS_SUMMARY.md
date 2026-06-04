@@ -12,6 +12,10 @@ PPO is compared against reward-shaped Safe PPO in HighwayEnv under dynamic traff
 
 The initial 100-episode comparison suggested that Safe PPO with `lambda=0.1` reduced collisions from 5.0% to 2.0% while preserving average speed around 20 m/s.
 
+### Training Rollout Progress
+
+TensorBoard rollout logs show that PPO learned during training: mean episode reward increased from 7.95 to 21.00, and mean episode length increased from 10.75 to 29.34. This is reported as training rollout performance, not held-out validation performance.
+
 ### Multi-Seed Validation
 
 A stricter deterministic benchmark was then run at density 50:
@@ -54,6 +58,7 @@ That negative result is valuable: it shows experimental rigor, prevents overclai
 
 - `results/plots/ppo_vs_safeppo_benchmark.png`
 - `results/plots/lambda_ablation.png`
+- `results/plots/training_rollout_progress.png`
 - `results/plots/performance_heatmap.png`
 - `results/plots/ood_stress_test.png`
 - `results/plots/density_robustness.png`

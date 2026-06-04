@@ -65,6 +65,8 @@ Traffic Density Evaluation
     ↓
 Lambda Ablation
     ↓
+Training Rollout Analysis
+    ↓
 Multi-Seed Robustness Validation
     ↓
 OOD Stress Testing
@@ -82,6 +84,7 @@ Analysis & Visualization
 * Performed safety-weight (λ) ablation studies to analyze safety-efficiency tradeoffs.
 * Evaluated policy robustness across varying traffic densities.
 * Performed out-of-distribution stress testing up to 10× the training traffic density.
+* Visualized PPO training rollout reward and episode length from TensorBoard logs.
 * Added multi-seed validation and statistical checks to avoid overclaiming from single-run results.
 * Built a reproducible experiment pipeline using Stable-Baselines3, MLflow, TensorBoard, and automated evaluation tooling.
 
@@ -119,6 +122,10 @@ The policy was trained on environments containing 30 vehicles and evaluated on e
 
 The agent maintained success rates above 94% across all evaluated out-of-distribution scenarios while preserving average driving speed.
 
+### Training Rollout Learning Progress
+
+TensorBoard rollout logs showed that PPO improved substantially during training, with mean episode reward rising from about 8 to 21 and mean episode length rising from about 11 to 29 steps. This figure is reported as training rollout performance, not held-out validation performance.
+
 ---
 
 ## Experimental Design
@@ -132,6 +139,7 @@ Evaluation Protocol:
 - Initial PPO vs Safe PPO benchmark: 100 episodes
 - Traffic density generalization: 50 episodes per density
 - OOD robustness at 150-300 vehicles: 35 episodes per density
+- Training rollout progress: TensorBoard rollout metrics
 - Multi-seed validation: 5 seed groups × 20 episodes
 - Metrics averaged across episodes with confidence intervals where applicable
 
@@ -196,7 +204,17 @@ Different safety penalty weights were evaluated to understand the safety-efficie
 
 ---
 
-### Experiment 4: Multi-Seed Robustness Validation
+### Experiment 4: Training Rollout Learning Dynamics
+
+Training rollout metrics were extracted from TensorBoard logs to show policy learning during PPO optimization.
+
+![Training Rollout Progress](results/plots/training_rollout_progress.png)
+
+**Key Observation:** Mean episode reward increased from approximately 8 to 21, while mean episode length increased from approximately 11 to 29 steps. This plot reports training rollout performance, not held-out validation performance.
+
+---
+
+### Experiment 5: Multi-Seed Robustness Validation
 
 The deterministic density-50 multi-seed benchmark was used as a validation check rather than a superiority claim. It showed identical aggregate safety metrics for PPO and Safe PPO under this specific protocol, so the final analysis avoids claiming statistical significance from that setting.
 
@@ -206,7 +224,7 @@ The deterministic density-50 multi-seed benchmark was used as a validation check
 
 ---
 
-### Experiment 5: Out-of-Distribution Robustness
+### Experiment 6: Out-of-Distribution Robustness
 
 The policy was trained on 30-vehicle traffic and evaluated under up to 300-vehicle traffic, representing a 10× density shift.
 
@@ -498,7 +516,30 @@ Establish the relationship between safety constraint intensity and driving behav
 
 ---
 
-# 🧪 Experiment 4: Multi-Seed Robustness Validation
+# 🧪 Experiment 4: Training Rollout Learning Dynamics
+
+## Objective
+
+Show whether PPO learned during training using Stable-Baselines3/TensorBoard rollout metrics.
+
+## Results
+
+![Training Rollout Progress](results/plots/training_rollout_progress.png)
+
+| Metric | Early Training | Later Training |
+| :--- | :---: | :---: |
+| Mean Episode Reward | 7.95 | 21.00 |
+| Mean Episode Length | 10.75 | 29.34 |
+
+**Analysis:** PPO steadily improved both rollout reward and survival duration during training. These are training-environment rollout metrics, so they answer whether the policy learned during optimization; they are not presented as held-out validation performance.
+
+## Checkpoint Evaluation Diagnostic
+
+A separate checkpoint evaluation curve was tested using held-out evaluation seeds, but the evaluation metrics remained unchanged from 10k to 60k timesteps. That curve was excluded from the final results because it reflected benchmark saturation/coarseness rather than a useful held-out learning-dynamics signal.
+
+---
+
+# 🧪 Experiment 5: Multi-Seed Robustness Validation
 
 ## Objective
 
@@ -514,13 +555,7 @@ Validate the PPO vs Safe PPO comparison under repeated deterministic evaluation 
 
 **Analysis:** This validation run did not support a statistically significant PPO vs Safe PPO difference under the deterministic density-50 multi-seed protocol. The result is treated as an important methodological check: the strongest claims are therefore based on the initial controlled benchmark, λ-ablation behavior, and OOD robustness analysis rather than this insensitive deterministic benchmark.
 
-## Learning-Curve Diagnostic
-
-A checkpoint learning-curve probe was also tested using held-out evaluation seeds, but the evaluation metrics remained unchanged from 10k to 60k timesteps. The curve was excluded from the final results because it reflected benchmark saturation/coarseness rather than a useful learning-dynamics signal.
-
----
-
-# 🧪 Experiment 5: Out-of-Distribution Robustness Testing
+# 🧪 Experiment 6: Out-of-Distribution Robustness Testing
 
 ## Objective
 
@@ -549,6 +584,7 @@ Evaluation episode counts vary by experiment:
 | PPO vs Safe PPO | 100 episodes |
 | Traffic Density Generalization | 50 episodes per density |
 | Safety Weight Ablation | 100 episodes per λ |
+| Training Rollout Learning Dynamics | TensorBoard rollout scalars |
 | Multi-Seed Robustness Validation | 5 seed groups × 20 episodes |
 | OOD Robustness | 35 episodes per density for 150-300 vehicles |
 
@@ -629,8 +665,9 @@ The most important finding is that traffic difficulty was not strictly proportio
 1. Reward-shaped Safe PPO produced promising single-run safety gains without reducing average speed.
 2. The learned policy generalized from 30 training vehicles to 300 evaluation vehicles while maintaining high success rates.
 3. Traffic difficulty was non-monotonic: intermediate congestion produced stronger degradation than some higher-density settings.
-4. Safety-weight ablations, multi-seed validation, and OOD testing provide evidence about policy behavior and evaluation sensitivity.
-5. The project provides a reproducible Safe RL evaluation framework with ablations, robustness testing, statistical checks, behavior analysis, and visualization.
+4. PPO rollout reward and episode length improved during training, indicating successful policy learning in the training environment.
+5. Safety-weight ablations, multi-seed validation, and OOD testing provide evidence about policy behavior and evaluation sensitivity.
+6. The project provides a reproducible Safe RL evaluation framework with ablations, robustness testing, statistical checks, behavior analysis, and visualization.
 
 ---
 

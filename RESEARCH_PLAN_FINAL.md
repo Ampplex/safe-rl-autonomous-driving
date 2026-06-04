@@ -14,13 +14,19 @@ Elevate the project from a technical MVP to a rigorous scientific study for the 
 - **Status:** [COMPLETED ✅]
 - **Finding:** Deterministic evaluation produced identical aggregate behavior across all λ values: collision rate `2.0% ± 2.8 pp`, success rate `98.0% ± 2.8 pp`, tailgating rate `13.6% ± 5.6 pp`, and average speed `20.02 ± 0.01 m/s`.
 
-### 1.2 Learning-Curve Diagnostic
+### 1.2 Training Rollout Progress
+- **Goal:** Show whether PPO learned during training using Stable-Baselines3/TensorBoard rollout metrics.
+- **Visuals:** `Training Rollout Reward` and `Training Rollout Episode Length`.
+- **Finding:** Mean episode reward increased from `7.95` to `21.00`; mean episode length increased from `10.75` to `29.34`.
+- **Status:** [GENERATED ✅]
+
+### 1.3 Checkpoint Evaluation Diagnostic
 - **Goal:** Test whether checkpoint evaluation can reveal policy-quality changes over training.
 - **Protocol Tested:** Held-out density-50 evaluation seeds with 30 episodes per checkpoint.
 - **Finding:** Evaluation metrics remained unchanged from 10k to 60k timesteps, indicating benchmark saturation/coarseness rather than useful learning-dynamics signal.
 - **Status:** [EXCLUDED FROM FINAL FIGURES ⚠️]
 
-### 1.3 Statistical Significance
+### 1.4 Statistical Significance
 - **Goal:** Quantify confidence in the improvement.
 - **Execution:** Application of statistical tests (T-test/Bootstrap) between baseline and Safe PPO.
 - **Status:** [COMPLETED ✅]
@@ -74,9 +80,10 @@ The project will deliver the following research-grade figures:
 3. `results/plots/density_robustness.png` - Robustness across traffic densities.
 4. `results/plots/lambda_ablation.png` - Safety-weight ablation.
 5. `results/plots/efficiency_tradeoff.png` - Efficiency invariance across λ.
-6. `results/plots/performance_heatmap.png` - Comprehensive density response.
-7. `results/supplementary/multi_seed_comparison.png` - Multi-seed error-bar comparison.
-8. `results/supplementary/reward_component_breakdown.png` - Reward accounting by λ.
+6. `results/plots/training_rollout_progress.png` - Training rollout reward and episode length.
+7. `results/plots/performance_heatmap.png` - Comprehensive density response.
+8. `results/supplementary/multi_seed_comparison.png` - Multi-seed error-bar comparison.
+9. `results/supplementary/reward_component_breakdown.png` - Reward accounting by λ.
 
 ---
 

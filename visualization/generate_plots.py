@@ -1,5 +1,6 @@
 import os
 import re
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -354,6 +355,77 @@ def plot_multi_seed_comparison():
     _save(f"{SUPPLEMENTARY_DIR}/multi_seed_comparison.png")
 
 
+def _load_training_rollout_data(log_root="logs/ppo"):
+    try:
+        from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+    except ImportError:
+        print("Skipping training rollout plot: TensorBoard is not installed.")
+        return pd.DataFrame()
+
+    records = []
+    for event_path in sorted(Path(log_root).glob("PPO_*/*tfevents*")):
+        accumulator = EventAccumulator(str(event_path))
+        accumulator.Reload()
+        scalar_tags = set(accumulator.Tags().get("scalars", []))
+        required_tags = {"rollout/ep_rew_mean", "rollout/ep_len_mean"}
+        if not required_tags.issubset(scalar_tags):
+            continue
+
+        reward_events = {event.step: event.value for event in accumulator.Scalars("rollout/ep_rew_mean")}
+        length_events = {event.step: event.value for event in accumulator.Scalars("rollout/ep_len_mean")}
+        for step in sorted(set(reward_events) & set(length_events)):
+            records.append({
+                "source_run": event_path.parent.name,
+                "step": step,
+                "episode_reward_mean": reward_events[step],
+                "episode_length_mean": length_events[step],
+            })
+
+    if not records:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(records)
+    max_steps = df.groupby("source_run")["step"].max().sort_values()
+    source_run = max_steps.index[-1]
+    return df[df["source_run"] == source_run].sort_values("step")
+
+
+def plot_training_rollout_progress():
+    rollout = _load_training_rollout_data()
+    if rollout.empty:
+        print("Skipping training rollout progress: no rollout TensorBoard data found.")
+        return
+
+    rollout.to_csv(f"{RESULTS_DIR}/training_rollout_progress.csv", index=False)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    ax1.plot(
+        rollout["step"],
+        rollout["episode_reward_mean"],
+        marker="o",
+        linewidth=2.5,
+        color="tab:blue",
+    )
+    ax1.set_title("Training Rollout Reward")
+    ax1.set_xlabel("Training Timesteps")
+    ax1.set_ylabel("Mean Episode Reward")
+    ax1.grid(True, linestyle=":", alpha=0.6)
+
+    ax2.plot(
+        rollout["step"],
+        rollout["episode_length_mean"],
+        marker="o",
+        linewidth=2.5,
+        color="tab:green",
+    )
+    ax2.set_title("Training Rollout Episode Length")
+    ax2.set_xlabel("Training Timesteps")
+    ax2.set_ylabel("Mean Episode Length")
+    ax2.grid(True, linestyle=":", alpha=0.6)
+
+    _save(f"{PLOTS_DIR}/training_rollout_progress.png")
+
+
 def _load_density_data():
     frames = []
     for path in [f"{RESULTS_DIR}/traffic_density_results.csv", f"{RESULTS_DIR}/ood_results.csv"]:
@@ -612,6 +684,7 @@ def generate_plots():
     plot_lambda_error_bars(lambda_df)
     plot_efficiency_and_pareto(lambda_df)
     plot_multi_seed_comparison()
+    plot_training_rollout_progress()
     plot_density_robustness()
     plot_performance_heatmap()
     plot_radar_chart()
