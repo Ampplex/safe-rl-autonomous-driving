@@ -1,0 +1,2 @@
+collision_rate,success_rate,avg_reward,avg_original_reward,avg_speed,avg_survival_time,tailgating_rate,unsafe_lane_change_rate,overspeed_rate
+0.05,0.95,-2.397984828744768,20.552015171255224,20.009981635570046,29.37,0.1529047619047619,0.0,0.0

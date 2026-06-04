@@ -1,0 +1,4 @@
+metric,baseline_lambda,safe_lambda,baseline_mean,safeppo_mean,absolute_difference_safe_minus_baseline,relative_improvement,welch_t_stat,welch_one_sided_p_value,bootstrap_diff_ci95_low,bootstrap_diff_ci95_high,significant_at_0.05,baseline_n,safeppo_n
+collision,0.0,0.1,0.02,0.02,0.0,0.0,0.0,0.5,-0.04,0.04,False,100,100
+tailgating_rate,0.0,0.1,0.13641666666666663,0.13641666666666663,0.0,0.0,0.0,0.5,-0.07934166666666667,0.08008333333333335,False,100,100
+safety_violation_score,0.0,0.1,0.33641666666666664,0.33641666666666664,0.0,0.0,0.0,0.5,-0.41483333333333317,0.40891874999999994,False,100,100

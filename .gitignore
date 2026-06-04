@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments
+venv/
+.venv/
+env/
+
+# OS/editor noise
+.DS_Store
+.vscode/
+.idea/
+
+# Local experiment tracking/runtime state
+logs/
+mlruns/
+mlflow.db
+
+# Local crash/session notes
+SESSION_RESUME.md
+
+# Temporary/debug artifacts
+results/debug_*.csv
+test_model.zip
+
+# Keep trained project models and curated results/plots in version control.
