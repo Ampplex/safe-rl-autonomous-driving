@@ -48,16 +48,16 @@ Statistical tests comparing `lambda=0.0` and `lambda=0.1` found no significant d
 
 The strongest research conclusion is not that `lambda=0.1` is statistically superior. The stronger, more credible conclusion is that a promising single-run safety improvement did not survive deterministic multi-seed validation at density 50, revealing that the current evaluation protocol may be saturated or insufficiently diverse.
 
-That negative result is valuable: it shows experimental rigor, prevents overclaiming, and motivates harder stochastic evaluation and failure-boundary discovery.
+That negative result is valuable: it shows experimental rigor, prevents overclaiming, and motivates harder stochastic evaluation under more diverse traffic configurations.
 
 ## Key Figures
 
 - `results/plots/ppo_vs_safeppo_benchmark.png`
 - `results/plots/lambda_ablation.png`
-- `results/plots/learning_dynamics.png`
 - `results/plots/performance_heatmap.png`
 - `results/plots/ood_stress_test.png`
 - `results/plots/density_robustness.png`
 - `results/plots/efficiency_tradeoff.png`
+- `results/supplementary/multi_seed_comparison.png`
 
 Supplementary analysis figures are stored in `results/supplementary/`.

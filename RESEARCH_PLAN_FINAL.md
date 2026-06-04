@@ -14,11 +14,11 @@ Elevate the project from a technical MVP to a rigorous scientific study for the 
 - **Status:** [COMPLETED ✅]
 - **Finding:** Deterministic evaluation produced identical aggregate behavior across all λ values: collision rate `2.0% ± 2.8 pp`, success rate `98.0% ± 2.8 pp`, tailgating rate `13.6% ± 5.6 pp`, and average speed `20.02 ± 0.01 m/s`.
 
-### 1.2 Learning Dynamics Analysis
-- **Goal:** Visualize the "Price of Safety" in terms of training speed and convergence stability.
-- **Visuals:** `Reward vs. Steps` and `Collision Rate vs. Steps` comparison.
-- **Insight:** Show the training-dynamics tradeoff; final policy superiority must be judged by the multi-seed benchmark.
-- **Status:** [DATA GENERATED ✅]
+### 1.2 Learning-Curve Diagnostic
+- **Goal:** Test whether checkpoint evaluation can reveal policy-quality changes over training.
+- **Protocol Tested:** Held-out density-50 evaluation seeds with 30 episodes per checkpoint.
+- **Finding:** Evaluation metrics remained unchanged from 10k to 60k timesteps, indicating benchmark saturation/coarseness rather than useful learning-dynamics signal.
+- **Status:** [EXCLUDED FROM FINAL FIGURES ⚠️]
 
 ### 1.3 Statistical Significance
 - **Goal:** Quantify confidence in the improvement.
@@ -48,13 +48,15 @@ Elevate the project from a technical MVP to a rigorous scientific study for the 
 
 ---
 
-## 📡 Tier 3: Generalization & Boundary Discovery
+## 📡 Tier 3: Generalization & High-Density Stress Testing
 
-### 3.1 Failure Boundary Discovery (The "Stress Limit")
-- **Goal:** Find the exact density where the policy collapses.
+### 3.1 High-Density Stress Testing
+- **Goal:** Probe behavior under densities beyond the public 20-300 vehicle robustness claim.
 - **Range:** Extending OOD tests from 300 up to 500 vehicles.
 - **Observation:** Determine if the policy fails gracefully or catastrophically.
-- **Status:** [RUNNING 🔄] Density 350+ extension is still active.
+- **Status:** [EXPLORATORY COMPLETE ⚠️]
+- **Finding:** No collapse was observed through 500 vehicles in the unseeded exploratory run. Because 350-500 vehicles outperformed 200-300 vehicles and the OOD run was not seed-controlled, this result should be treated as a diagnostic signal rather than a public headline claim.
+- **Next rigorous protocol:** Run densities `{150, 200, 250, 300, 350, 400, 450, 500}` across seeds `{42, 123, 456, 789, 2025}` with 20 episodes per seed, for `8 x 5 x 20 = 800` total episodes.
 
 ### 3.2 Lane Change & Aggression Analysis
 - **Goal:** Explain *how* the agent achieves safety.
@@ -67,15 +69,14 @@ Elevate the project from a technical MVP to a rigorous scientific study for the 
 
 ## 📈 Final Visualization Suite
 The project will deliver the following research-grade figures:
-1. `pareto_frontier_normalized.png` - Objective dominance.
-2. `multi_seed_comparison.png` - Multi-seed error-bar comparison.
-3. `performance_heatmap.png` - Comprehensive density response.
-4. `learning_dynamics.png` - Training convergence profiles.
-5. `ood_stress_test.png` - Failure boundary identification.
-6. `radar_comparison.png` - Multi-objective policy comparison.
-7. `constraint_violations.png` - Safety violation score vs λ.
-8. `lane_changes_vs_lambda.png` - Behavior analysis vs λ.
-9. `reward_component_breakdown.png` - Reward accounting by λ.
+1. `results/plots/ppo_vs_safeppo_benchmark.png` - PPO vs Safe PPO benchmark comparison.
+2. `results/plots/ood_stress_test.png` - OOD stress-test performance.
+3. `results/plots/density_robustness.png` - Robustness across traffic densities.
+4. `results/plots/lambda_ablation.png` - Safety-weight ablation.
+5. `results/plots/efficiency_tradeoff.png` - Efficiency invariance across λ.
+6. `results/plots/performance_heatmap.png` - Comprehensive density response.
+7. `results/supplementary/multi_seed_comparison.png` - Multi-seed error-bar comparison.
+8. `results/supplementary/reward_component_breakdown.png` - Reward accounting by λ.
 
 ---
 
@@ -85,6 +86,6 @@ The project will deliver the following research-grade figures:
 - **Behavioral Eval:** [COMPLETE ✅] Saved to `results/lambda_behavior_analysis.csv`.
 - **Reward Breakdown:** [COMPLETE ✅] Saved to `results/reward_component_breakdown.csv`.
 - **Plot Refresh:** [COMPLETE ✅] Updated figures in `results/plots/`.
-- **OOD Extension:** [RUNNING 🔄] PID `62617` - Testing densities 350-500; density 350 has reached at least episode 10/20.
+- **OOD Extension:** [EXPLORATORY COMPLETE ⚠️] Densities 150-500 saved to `results/ood_results.csv`; keep the public README focused on the defensible 20-300 vehicle robustness claim until a seed-controlled OOD sweep is complete.
 
-**Next Step:** Let the OOD extension continue writing density checkpoints, then rerun `venv/bin/python visualization/generate_plots.py` after new OOD rows are saved.
+**Next Step:** Implement and run the seed-controlled OOD sweep before promoting the 350-500 vehicle results in the README or resume.

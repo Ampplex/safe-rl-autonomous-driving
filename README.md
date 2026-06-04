@@ -14,8 +14,7 @@
 | Training Density | 30 Vehicles |
 | Maximum Tested Density | 300 Vehicles |
 | Distribution Shift | 10× |
-| Maximum Success Rate | 97.14% |
-| Lowest Success Rate | 94.29% |
+| OOD Success Rate | 94.29% – 97.14% |
 | Collision Rate Range | 2.86% – 5.71% |
 | Average Speed | ~20 m/s |
 
@@ -47,11 +46,11 @@ The project focuses on three central questions:
 
 ## Highlights
 
-* Initial benchmark showed up to 60% collision reduction compared to PPO
-* Initial benchmark showed up to 44% tailgating reduction
+* Initial benchmark observed a 60% collision-rate reduction compared to PPO
+* Initial benchmark observed a 44% tailgating-rate reduction
 * Generalized from 30 to 300 vehicles (10× density shift)
 * Maintained ~20 m/s average speed across all experiments
-* Evaluated using ablations, robustness tests, and OOD stress testing
+* Evaluated using ablations, multi-seed validation, robustness tests, and OOD stress testing
 
 ---
 
@@ -62,9 +61,11 @@ PPO Baseline
     ↓
 Safety-Constrained PPO
     ↓
+Traffic Density Evaluation
+    ↓
 Lambda Ablation
     ↓
-Traffic Density Evaluation
+Multi-Seed Robustness Validation
     ↓
 OOD Stress Testing
     ↓
@@ -81,6 +82,7 @@ Analysis & Visualization
 * Performed safety-weight (λ) ablation studies to analyze safety-efficiency tradeoffs.
 * Evaluated policy robustness across varying traffic densities.
 * Performed out-of-distribution stress testing up to 10× the training traffic density.
+* Added multi-seed validation and statistical checks to avoid overclaiming from single-run results.
 * Built a reproducible experiment pipeline using Stable-Baselines3, MLflow, TensorBoard, and automated evaluation tooling.
 
 ---
@@ -91,8 +93,8 @@ Analysis & Visualization
 
 In the initial controlled benchmark, compared with the baseline PPO agent, the Safety-Constrained PPO agent demonstrated:
 
-* Up to 60% reduction in collision rate (5.0% → 2.0%)
-* Up to 44% reduction in tailgating rate (15.3% → 8.5%)
+* Observed 60% reduction in collision rate (5.0% → 2.0%)
+* Observed 44% reduction in tailgating rate (15.3% → 8.5%)
 * Increased success rate (95% → 98%)
 * Maintained average driving speed (~20 m/s)
 
@@ -124,12 +126,14 @@ The agent maintained success rates above 94% across all evaluated out-of-distrib
 Training Environment:
 - HighwayEnv `highway-v0`
 - 30 traffic vehicles
-- PPO and Safe PPO trained for 200k timesteps
+- PPO and Safe PPO trained using the configured PPO budget in `configs/config.py`
 
 Evaluation Protocol:
-- 100 episodes per experiment
-- Fixed evaluation seeds
-- Metrics averaged across episodes
+- Initial PPO vs Safe PPO benchmark: 100 episodes
+- Traffic density generalization: 50 episodes per density
+- OOD robustness at 150-300 vehicles: 35 episodes per density
+- Multi-seed validation: 5 seed groups × 20 episodes
+- Metrics averaged across episodes with confidence intervals where applicable
 
 Primary Metrics:
 - Collision Rate
@@ -168,17 +172,7 @@ The detailed comparison table is included in Experiment 1 below.
 
 ---
 
-### Experiment 2: Out-of-Distribution Robustness
-
-The policy was trained on 30-vehicle traffic and evaluated under up to 300-vehicle traffic, representing a 10× density shift.
-
-![OOD Stress Test](results/plots/ood_stress_test.png)
-
-**Key Observation:** The policy maintained success rates above 94% across all tested OOD scenarios while preserving average driving speed.
-
----
-
-### Experiment 3: Traffic Density Generalization
+### Experiment 2: Traffic Density Generalization
 
 The policy was evaluated across multiple traffic densities to assess robustness under varying levels of congestion.
 
@@ -188,13 +182,13 @@ The policy was evaluated across multiple traffic densities to assess robustness 
 
 ---
 
-### Experiment 4: Safety Weight (λ) Ablation
+### Experiment 3: Safety Weight (λ) Ablation
 
 Different safety penalty weights were evaluated to understand the safety-efficiency tradeoff.
 
 ![Lambda Ablation Study](results/plots/lambda_ablation.png)
 
-**Key Observation:** The initial ablation suggested that small safety penalties improved behavior substantially, while larger penalties produced diminishing returns.
+**Key Observation:** In the single-run ablation, smaller safety penalties produced the strongest safety metrics, while larger penalties showed diminishing returns.
 
 ![Efficiency Invariance](results/plots/efficiency_tradeoff.png)
 
@@ -202,17 +196,27 @@ Different safety penalty weights were evaluated to understand the safety-efficie
 
 ---
 
-### Experiment 5: Training Dynamics Analysis
+### Experiment 4: Multi-Seed Robustness Validation
 
-Representative learning-dynamics curves provide context for policy convergence and learning stability.
+The deterministic density-50 multi-seed benchmark was used as a validation check rather than a superiority claim. It showed identical aggregate safety metrics for PPO and Safe PPO under this specific protocol, so the final analysis avoids claiming statistical significance from that setting.
 
-![Learning Dynamics](results/plots/learning_dynamics.png)
+![Multi-Seed Comparison](results/supplementary/multi_seed_comparison.png)
 
-**Key Observation:** The representative curves summarize reward and collision-rate dynamics over training, making convergence behavior visible rather than relying only on final aggregate metrics.
+**Key Observation:** The multi-seed result exposed that some deterministic evaluation settings are too insensitive to distinguish policy variants, reinforcing the need for density stress tests and OOD analysis.
 
 ---
 
-### Optional: Performance Heatmap
+### Experiment 5: Out-of-Distribution Robustness
+
+The policy was trained on 30-vehicle traffic and evaluated under up to 300-vehicle traffic, representing a 10× density shift.
+
+![OOD Stress Test](results/plots/ood_stress_test.png)
+
+**Key Observation:** The policy maintained success rates above 94% across all tested OOD scenarios while preserving average driving speed.
+
+---
+
+### Performance Heatmap
 
 The heatmap summarizes collision, tailgating, success, and speed across traffic densities.
 
@@ -448,8 +452,8 @@ Compare a standard PPO agent against a Safety-Constrained PPO agent using a safe
 
 | Metric | Baseline PPO | Safe PPO ($\lambda=0.1$) | Change |
 | :--- | :---: | :---: | :--- |
-| Collision Rate | 5.0% | 2.0% | Up to 60% reduction |
-| Tailgating Rate | 15.3% | 8.5% | Up to 44% reduction |
+| Collision Rate | 5.0% | 2.0% | 60% reduction observed |
+| Tailgating Rate | 15.3% | 8.5% | 44% reduction observed |
 | Success Rate | 95.0% | 98.0% | +3.0 pp |
 | Avg Speed | 20.01 m/s | 20.02 m/s | Maintained |
 | Avg Survival Time | 29.37s | 29.71s | +1.2% |
@@ -458,26 +462,7 @@ Compare a standard PPO agent against a Safety-Constrained PPO agent using a safe
 
 ---
 
-# 🧪 Experiment 2: Out-of-Distribution Robustness Testing
-
-## Objective
-
-Evaluate whether a policy trained with 30 vehicles can generalize to substantially denser traffic.
-
-## Results
-
-| Traffic Density | Success Rate | Collision Rate | Avg Speed | Tailgating Rate |
-| :--- | :---: | :---: | :---: | :---: |
-| 150 | 97.14% | 2.86% | 20.02 m/s | 9.0% |
-| 200 | 94.29% | 5.71% | 19.99 m/s | 16.3% |
-| 250 | 97.14% | 2.86% | 20.03 m/s | 15.1% |
-| 300 | 97.14% | 2.86% | 20.02 m/s | 9.4% |
-
-**Analysis:** The model maintained 94–97% success rates up to 10× the training density while preserving average speed. Performance degradation was non-monotonic, with 200 vehicles proving more challenging than 250 or 300 vehicles.
-
----
-
-# 🧪 Experiment 3: Traffic Density Generalization
+# 🧪 Experiment 2: Traffic Density Generalization
 
 ## Objective
 
@@ -495,7 +480,7 @@ Evaluate the robustness of the $\lambda = 0.1$ policy across varying traffic den
 
 ---
 
-# 🧪 Experiment 4: Safety Weight ($\lambda$) Ablation
+# 🧪 Experiment 3: Safety Weight ($\lambda$) Ablation
 
 ## Objective
 
@@ -509,34 +494,63 @@ Establish the relationship between safety constraint intensity and driving behav
 | 1.0 | 3.0% | 10.0% | 97% | 20.01 m/s |
 | 2.0 | 2.0% | 14.2% | 98% | 20.02 m/s |
 
-**Analysis:** The ablation suggested λ=0.1 as the best-performing setting in this benchmark, reducing collisions and tailgating while maintaining average speed.
+**Analysis:** In the single-run ablation, λ=0.1 produced the lowest collision and tailgating rates while maintaining average speed. The later multi-seed validation is reported separately to avoid overclaiming this single-run result.
 
 ---
 
-# 🧪 Experiment 5: Training Dynamics Analysis
+# 🧪 Experiment 4: Multi-Seed Robustness Validation
 
 ## Objective
 
-Compare PPO and Safe PPO learning dynamics using representative reward and collision-rate curves across training steps.
+Validate the PPO vs Safe PPO comparison under repeated deterministic evaluation seeds and quantify whether the observed differences remain statistically distinguishable.
 
-## Observations
+## Results
 
-* Baseline PPO shows faster reward convergence early in training.
-* Safe PPO shows a slower initial reward trajectory as safety penalties are introduced.
-* The representative learning-curve figure provides training context beyond final aggregate scores.
+| Metric | Baseline PPO | Safe PPO ($\lambda=0.1$) | Welch p-value | Significant |
+| :--- | :---: | :---: | :---: | :---: |
+| Collision Rate | 2.0% | 2.0% | 0.500 | No |
+| Tailgating Rate | 13.6% | 13.6% | 0.500 | No |
+| Safety Violation Score | 0.336 | 0.336 | 0.500 | No |
+
+**Analysis:** This validation run did not support a statistically significant PPO vs Safe PPO difference under the deterministic density-50 multi-seed protocol. The result is treated as an important methodological check: the strongest claims are therefore based on the initial controlled benchmark, λ-ablation behavior, and OOD robustness analysis rather than this insensitive deterministic benchmark.
+
+## Learning-Curve Diagnostic
+
+A checkpoint learning-curve probe was also tested using held-out evaluation seeds, but the evaluation metrics remained unchanged from 10k to 60k timesteps. The curve was excluded from the final results because it reflected benchmark saturation/coarseness rather than a useful learning-dynamics signal.
+
+---
+
+# 🧪 Experiment 5: Out-of-Distribution Robustness Testing
+
+## Objective
+
+Evaluate whether a policy trained with 30 vehicles can generalize to substantially denser traffic.
+
+## Results
+
+| Traffic Density | Success Rate | Collision Rate | Avg Speed | Tailgating Rate |
+| :--- | :---: | :---: | :---: | :---: |
+| 150 | 97.14% | 2.86% | 20.02 m/s | 9.0% |
+| 200 | 94.29% | 5.71% | 19.99 m/s | 16.3% |
+| 250 | 97.14% | 2.86% | 20.03 m/s | 15.1% |
+| 300 | 97.14% | 2.86% | 20.02 m/s | 9.4% |
+
+**Analysis:** The model maintained 94–97% success rates up to 10× the training density while preserving average speed. Performance degradation was non-monotonic, with 200 vehicles proving more challenging than 250 or 300 vehicles.
 
 
 ---
 
 # 📊 Evaluation Framework
 
-Evaluation Episodes:
+Evaluation episode counts vary by experiment:
 
-```python
-100
-```
-
-for every experiment.
+| Experiment | Episode Protocol |
+| :--- | :--- |
+| PPO vs Safe PPO | 100 episodes |
+| Traffic Density Generalization | 50 episodes per density |
+| Safety Weight Ablation | 100 episodes per λ |
+| Multi-Seed Robustness Validation | 5 seed groups × 20 episodes |
+| OOD Robustness | 35 episodes per density for 150-300 vehicles |
 
 ---
 
@@ -615,8 +629,8 @@ The most important finding is that traffic difficulty was not strictly proportio
 1. Reward-shaped Safe PPO produced promising single-run safety gains without reducing average speed.
 2. The learned policy generalized from 30 training vehicles to 300 evaluation vehicles while maintaining high success rates.
 3. Traffic difficulty was non-monotonic: intermediate congestion produced stronger degradation than some higher-density settings.
-4. Safety-weight ablations and learning curves provide additional evidence about policy behavior, convergence, and safety-efficiency tradeoffs.
-5. The project provides a reproducible Safe RL evaluation framework with ablations, robustness testing, behavior analysis, and visualization.
+4. Safety-weight ablations, multi-seed validation, and OOD testing provide evidence about policy behavior and evaluation sensitivity.
+5. The project provides a reproducible Safe RL evaluation framework with ablations, robustness testing, statistical checks, behavior analysis, and visualization.
 
 ---
 
@@ -639,7 +653,7 @@ Additional multi-seed evaluations and statistical analyses are included in the r
 # Future Work
 
 * Evaluate policies under stochastic action sampling and randomized traffic configurations.
-* Extend failure-boundary testing beyond 300 vehicles.
+* Run seeded stress tests beyond 300 vehicles to better characterize high-density behavior.
 * Add additional Safe RL baselines, such as collision-only penalties and constrained-policy methods.
 * Move from HighwayEnv to CARLA for richer perception and control settings.
 * Add vision-based observations using camera inputs.

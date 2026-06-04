@@ -21,27 +21,44 @@ def train_ppo(
     record_curves=False,
     curve_file="results/learning_curves/ppo_baseline_curve.csv",
     eval_freq=5000,
-    eval_episodes=10,
+    eval_episodes=30,
+    eval_density=50,
+    eval_seed_start=20_000,
     model_path="models/ppo_baseline",
+    run_name=None,
 ):
     setup_mlflow()
+    if run_name is not None:
+        mlflow.set_tag("mlflow.runName", run_name)
+    mlflow.set_tag("model_type", "PPO")
+    mlflow.set_tag("curve_run", str(record_curves))
+
     full_config = PPO_CONFIG.copy()
     if timesteps is not None:
         full_config["total_timesteps"] = timesteps
     full_config["record_curves"] = record_curves
+    full_config["train_density"] = 30
+    full_config["eval_density"] = eval_density
+    full_config["eval_seed_start"] = eval_seed_start
+    full_config["eval_seed_end"] = eval_seed_start + eval_episodes - 1
+    full_config["eval_freq"] = eval_freq
+    full_config["eval_episodes"] = eval_episodes
+    full_config["eval_protocol"] = "heldout_fixed_seed_bank"
     mlflow.log_params(full_config)
 
     env = make_env()
     callbacks = []
     eval_env = None
     if record_curves:
-        eval_env = SafeRewardWrapper(make_env(safe=False))
+        eval_env = SafeRewardWrapper(make_env(vehicles_count=eval_density, safe=False))
         callbacks.append(
             SafetyEvalCallback(
                 eval_env,
                 csv_path=curve_file,
                 eval_freq=eval_freq,
                 n_eval_episodes=eval_episodes,
+                eval_seed_start=eval_seed_start,
+                eval_density=eval_density,
                 verbose=1,
             )
         )
@@ -87,8 +104,11 @@ if __name__ == "__main__":
     parser.add_argument("--record_curves", action="store_true")
     parser.add_argument("--curve_file", type=str, default="results/learning_curves/ppo_baseline_curve.csv")
     parser.add_argument("--eval_freq", type=int, default=5000)
-    parser.add_argument("--eval_episodes", type=int, default=10)
+    parser.add_argument("--eval_episodes", type=int, default=30)
+    parser.add_argument("--eval_density", type=int, default=50)
+    parser.add_argument("--eval_seed_start", type=int, default=20_000)
     parser.add_argument("--model_path", type=str, default="models/ppo_baseline")
+    parser.add_argument("--run_name", type=str, default=None)
     args = parser.parse_args()
 
     train_ppo(
@@ -97,5 +117,8 @@ if __name__ == "__main__":
         curve_file=args.curve_file,
         eval_freq=args.eval_freq,
         eval_episodes=args.eval_episodes,
+        eval_density=args.eval_density,
+        eval_seed_start=args.eval_seed_start,
         model_path=args.model_path,
+        run_name=args.run_name,
     )

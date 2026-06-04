@@ -42,7 +42,9 @@ def combine_curve_files(
 def run_learning_curve_experiment(
     timesteps=None,
     eval_freq=5000,
-    eval_episodes=10,
+    eval_episodes=30,
+    eval_density=50,
+    eval_seed_start=20_000,
     skip_training=False,
 ):
     timesteps = timesteps if timesteps is not None else PPO_CONFIG["total_timesteps"]
@@ -56,7 +58,10 @@ def run_learning_curve_experiment(
             curve_file=baseline_curve,
             eval_freq=eval_freq,
             eval_episodes=eval_episodes,
+            eval_density=eval_density,
+            eval_seed_start=eval_seed_start,
             model_path="models/ppo_baseline_curve_run",
+            run_name=f"ppo_learning_curve_d{eval_density}_{timesteps}",
         )
         train_safe_ppo(
             timesteps=timesteps,
@@ -64,7 +69,10 @@ def run_learning_curve_experiment(
             curve_file=safe_curve,
             eval_freq=eval_freq,
             eval_episodes=eval_episodes,
+            eval_density=eval_density,
+            eval_seed_start=eval_seed_start,
             model_path="models/safeppo_curve_run",
+            run_name=f"safeppo_learning_curve_d{eval_density}_{timesteps}",
         )
 
     return combine_curve_files(baseline_curve, safe_curve)
@@ -74,7 +82,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--timesteps", type=int, default=None)
     parser.add_argument("--eval_freq", type=int, default=5000)
-    parser.add_argument("--eval_episodes", type=int, default=10)
+    parser.add_argument("--eval_episodes", type=int, default=30)
+    parser.add_argument("--eval_density", type=int, default=50)
+    parser.add_argument("--eval_seed_start", type=int, default=20_000)
     parser.add_argument("--skip_training", action="store_true")
     args = parser.parse_args()
 
@@ -82,5 +92,7 @@ if __name__ == "__main__":
         timesteps=args.timesteps,
         eval_freq=args.eval_freq,
         eval_episodes=args.eval_episodes,
+        eval_density=args.eval_density,
+        eval_seed_start=args.eval_seed_start,
         skip_training=args.skip_training,
     )

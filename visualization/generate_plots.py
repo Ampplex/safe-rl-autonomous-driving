@@ -354,66 +354,6 @@ def plot_multi_seed_comparison():
     _save(f"{SUPPLEMENTARY_DIR}/multi_seed_comparison.png")
 
 
-def plot_learning_dynamics():
-    curves_path = f"{RESULTS_DIR}/learning_curves.csv"
-    representative_path = f"{RESULTS_DIR}/representative_learning_curves.csv"
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
-    if os.path.exists(curves_path):
-        curves = pd.read_csv(curves_path)
-        for model, group in curves.groupby("model"):
-            group = group.sort_values("step")
-            ax1.plot(group["step"], group["reward"], marker="o", linewidth=2, label=model)
-            ax2.plot(group["step"], group["collision"] * 100, marker="o", linewidth=2, label=model)
-    elif os.path.exists(representative_path):
-        curves = pd.read_csv(representative_path).sort_values("step")
-        ax1.plot(
-            curves["step"],
-            curves["baseline_reward"],
-            marker="o",
-            linewidth=2,
-            label="PPO",
-        )
-        ax1.plot(
-            curves["step"],
-            curves["safe_reward"],
-            marker="o",
-            linewidth=2,
-            label="Safe PPO",
-        )
-        ax2.plot(
-            curves["step"],
-            curves["baseline_collision"] * 100,
-            marker="o",
-            linewidth=2,
-            label="PPO",
-        )
-        ax2.plot(
-            curves["step"],
-            curves["safe_collision"] * 100,
-            marker="o",
-            linewidth=2,
-            label="Safe PPO",
-        )
-    else:
-        print("Skipping learning dynamics: no learning curve CSV found.")
-        plt.close(fig)
-        return
-
-    ax1.set_title("Reward vs Training Steps")
-    ax1.set_xlabel("Training Steps")
-    ax1.set_ylabel("Evaluation Reward")
-    ax1.grid(True, linestyle=":", alpha=0.6)
-    ax1.legend()
-
-    ax2.set_title("Collision Rate vs Training Steps")
-    ax2.set_xlabel("Training Steps")
-    ax2.set_ylabel("Collision Rate (%)")
-    ax2.grid(True, linestyle=":", alpha=0.6)
-    ax2.legend()
-    _save(f"{PLOTS_DIR}/learning_dynamics.png")
-
-
 def _load_density_data():
     frames = []
     for path in [f"{RESULTS_DIR}/traffic_density_results.csv", f"{RESULTS_DIR}/ood_results.csv"]:
@@ -672,7 +612,6 @@ def generate_plots():
     plot_lambda_error_bars(lambda_df)
     plot_efficiency_and_pareto(lambda_df)
     plot_multi_seed_comparison()
-    plot_learning_dynamics()
     plot_density_robustness()
     plot_performance_heatmap()
     plot_radar_chart()
