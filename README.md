@@ -156,52 +156,6 @@ The resulting framework provides a reproducible platform for investigating safet
 
 ---
 
-## Technology Stack
-
-### Reinforcement Learning
-
-* Stable-Baselines3
-* PPO
-
-### Simulation Environment
-
-* Gymnasium
-* HighwayEnv
-
-### Experiment Tracking
-
-* MLflow
-* TensorBoard
-
-### Data Analysis
-
-* NumPy
-* Pandas
-* Matplotlib
-
-### Language
-
-* Python 3.11
-
----
-
-## Quick Start
-
-```bash
-git clone https://github.com/Ampplex/safe-rl-autonomous-driving.git
-cd safe-rl-autonomous-driving
-pip install -r requirements.txt
-python training/train_safeppo.py
-```
-
-For the full core evaluation pipeline:
-
-```bash
-scripts/run_core_evaluation.sh
-```
-
----
-
 ## Results
 
 ### Experiment 1: PPO vs Safe PPO
@@ -597,6 +551,52 @@ for every experiment.
 * Success Rate
 * Average Speed
 * Survival Time
+
+---
+
+## Technology Stack
+
+### Reinforcement Learning
+
+* Stable-Baselines3
+* PPO
+
+### Simulation Environment
+
+* Gymnasium
+* HighwayEnv
+
+### Experiment Tracking
+
+* MLflow
+* TensorBoard
+
+### Data Analysis
+
+* NumPy
+* Pandas
+* Matplotlib
+
+### Language
+
+* Python 3.11
+
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/Ampplex/safe-rl-autonomous-driving.git
+cd safe-rl-autonomous-driving
+pip install -r requirements.txt
+python training/train_safeppo.py
+```
+
+For the full core evaluation pipeline:
+
+```bash
+scripts/run_core_evaluation.sh
+```
 
 ---
 
