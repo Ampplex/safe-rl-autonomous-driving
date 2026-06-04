@@ -52,6 +52,7 @@ That negative result is valuable: it shows experimental rigor, prevents overclai
 
 ## Key Figures
 
+- `results/plots/ppo_vs_safeppo_benchmark.png`
 - `results/plots/lambda_ablation.png`
 - `results/plots/learning_dynamics.png`
 - `results/plots/performance_heatmap.png`

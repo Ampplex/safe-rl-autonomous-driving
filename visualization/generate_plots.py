@@ -8,10 +8,12 @@ import pandas as pd
 
 RESULTS_DIR = "results"
 PLOTS_DIR = "results/plots"
+SUPPLEMENTARY_DIR = "results/supplementary"
 
 
 def _ensure_dirs():
     os.makedirs(PLOTS_DIR, exist_ok=True)
+    os.makedirs(SUPPLEMENTARY_DIR, exist_ok=True)
 
 
 def _save(path):
@@ -81,6 +83,80 @@ def _load_lambda_data():
     return pd.concat(frames, ignore_index=True).sort_values("lambda")
 
 
+def plot_benchmark_comparison():
+    comparison_path = f"{RESULTS_DIR}/comparison.csv"
+    if not os.path.exists(comparison_path):
+        print("Skipping PPO vs Safe PPO benchmark: comparison.csv not found.")
+        return
+
+    df = pd.read_csv(comparison_path)
+    if df.empty or "Model" not in df.columns:
+        print("Skipping PPO vs Safe PPO benchmark: comparison.csv is missing model rows.")
+        return
+
+    model_labels = df["Model"].replace({
+        "Baseline PPO": "PPO",
+        "Safe PPO (lambda=0.1)": "Safe PPO",
+    })
+    colors = ["#D1495B", "#2A9D8F"]
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+    safety_metrics = [
+        ("collision_rate", "Collision"),
+        ("tailgating_rate", "Tailgating"),
+    ]
+    x = np.arange(len(safety_metrics))
+    width = 0.35
+
+    for idx, (_, row) in enumerate(df.iterrows()):
+        values = [row[column] * 100 for column, _ in safety_metrics]
+        bars = axes[0].bar(
+            x + (idx - 0.5) * width,
+            values,
+            width,
+            label=model_labels.iloc[idx],
+            color=colors[idx % len(colors)],
+            alpha=0.9,
+        )
+        axes[0].bar_label(bars, fmt="%.1f%%", padding=3, fontsize=9)
+
+    axes[0].set_title("Safety Outcomes")
+    axes[0].set_ylabel("Rate (%)")
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels([label for _, label in safety_metrics])
+    axes[0].grid(True, axis="y", linestyle=":", alpha=0.6)
+    axes[0].legend()
+
+    efficiency_metrics = [
+        ("success_rate", "Success (%)", 100),
+        ("avg_speed", "Speed (m/s)", 1),
+        ("avg_survival_time", "Survival (s)", 1),
+    ]
+    x = np.arange(len(efficiency_metrics))
+
+    for idx, (_, row) in enumerate(df.iterrows()):
+        values = [row[column] * scale for column, _, scale in efficiency_metrics]
+        bars = axes[1].bar(
+            x + (idx - 0.5) * width,
+            values,
+            width,
+            label=model_labels.iloc[idx],
+            color=colors[idx % len(colors)],
+            alpha=0.9,
+        )
+        axes[1].bar_label(bars, fmt="%.1f", padding=3, fontsize=9)
+
+    axes[1].set_title("Efficiency Outcomes")
+    axes[1].set_ylabel("Value")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels([label for _, label, _ in efficiency_metrics])
+    axes[1].grid(True, axis="y", linestyle=":", alpha=0.6)
+    axes[1].legend()
+
+    _save(f"{PLOTS_DIR}/ppo_vs_safeppo_benchmark.png")
+
+
 def plot_lambda_error_bars(lambda_df):
     if lambda_df.empty:
         print("Skipping lambda plots: no lambda summary data found.")
@@ -143,7 +219,7 @@ def plot_lambda_error_bars(lambda_df):
     plt.ylabel("Violation Score")
     plt.title("Constraint Violation Profile vs Safety Weight")
     plt.grid(True, linestyle=":", alpha=0.6)
-    _save(f"{PLOTS_DIR}/constraint_violations.png")
+    _save(f"{SUPPLEMENTARY_DIR}/constraint_violations.png")
 
 
 def plot_efficiency_and_pareto(lambda_df):
@@ -206,7 +282,7 @@ def plot_efficiency_and_pareto(lambda_df):
     plt.ylabel("Safety Gain: Collision Reduction (%)")
     plt.title("Normalized Pareto Frontier")
     plt.grid(True, linestyle=":", alpha=0.6)
-    _save(f"{PLOTS_DIR}/pareto_frontier_normalized.png")
+    _save(f"{SUPPLEMENTARY_DIR}/pareto_frontier_normalized.png")
 
 
 def plot_multi_seed_comparison():
@@ -275,7 +351,7 @@ def plot_multi_seed_comparison():
     plt.xticks(x + width / 2, labels)
     plt.grid(True, axis="y", linestyle=":", alpha=0.6)
     plt.legend()
-    _save(f"{PLOTS_DIR}/multi_seed_comparison.png")
+    _save(f"{SUPPLEMENTARY_DIR}/multi_seed_comparison.png")
 
 
 def plot_learning_dynamics():
@@ -499,7 +575,7 @@ def plot_radar_chart():
     ax.set_yticklabels([])
     ax.set_title("PPO vs Safe PPO Performance Fingerprint", y=1.08)
     ax.legend(loc="upper right", bbox_to_anchor=(1.25, 1.1))
-    _save(f"{PLOTS_DIR}/radar_comparison.png")
+    _save(f"{SUPPLEMENTARY_DIR}/radar_comparison.png")
 
 
 def plot_behavior_analysis():
@@ -525,7 +601,7 @@ def plot_behavior_analysis():
     lines_2, labels_2 = ax2.get_legend_handles_labels()
     ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="best")
     plt.title("Behavior Analysis: Lane Changes vs Safety Weight")
-    _save(f"{PLOTS_DIR}/lane_changes_vs_lambda.png")
+    _save(f"{SUPPLEMENTARY_DIR}/lane_changes_vs_lambda.png")
 
 
 def plot_reward_breakdown():
@@ -558,7 +634,7 @@ def plot_reward_breakdown():
     plt.title("Reward Component Breakdown by Safety Weight")
     plt.legend()
     plt.grid(True, axis="y", linestyle=":", alpha=0.6)
-    _save(f"{PLOTS_DIR}/reward_component_breakdown.png")
+    _save(f"{SUPPLEMENTARY_DIR}/reward_component_breakdown.png")
 
 
 def plot_sensitivity_surface():
@@ -586,12 +662,13 @@ def plot_sensitivity_surface():
     ax.set_ylabel("Tailgating Penalty")
     ax.set_zlabel(surface_metric.replace("_", " ").title())
     ax.set_title("Sensitivity Surface for Reward Penalties")
-    _save(f"{PLOTS_DIR}/sensitivity_surface.png")
+    _save(f"{SUPPLEMENTARY_DIR}/sensitivity_surface.png")
 
 
 def generate_plots():
     _ensure_dirs()
     lambda_df = _load_lambda_data()
+    plot_benchmark_comparison()
     plot_lambda_error_bars(lambda_df)
     plot_efficiency_and_pareto(lambda_df)
     plot_multi_seed_comparison()

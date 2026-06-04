@@ -162,6 +162,8 @@ The resulting framework provides a reproducible platform for investigating safet
 
 The Safety-Constrained PPO agent reduced collision and tailgating behavior in the initial benchmark while preserving driving efficiency.
 
+![PPO vs Safe PPO Benchmark](results/plots/ppo_vs_safeppo_benchmark.png)
+
 The detailed comparison table is included in Experiment 1 below.
 
 ---
