@@ -8,13 +8,25 @@
   <b>Safe PPO generalized from 30 training vehicles to 300 vehicles (10× density) while maintaining 94–97% success rates.</b>
 </p>
 
+## At a Glance
+
+| Metric | Result |
+| --- | ---: |
+| Training Density | 30 Vehicles |
+| Maximum Tested Density | 300 Vehicles |
+| Distribution Shift | 10× |
+| Maximum Success Rate | 97.14% |
+| Lowest Success Rate | 94.29% |
+| Collision Rate Range | 2.86% – 5.71% |
+| Average Speed | ~20 m/s |
+
 ## Safety-Constrained Policy Optimization under Dynamic Traffic Conditions
 
 ## Overview
 
-Autonomous driving systems must continuously balance efficiency, safety, and robustness while operating in dynamic environments. Standard reinforcement learning agents often optimize solely for task completion and cumulative reward, which can lead to unsafe driving behaviors such as collisions, aggressive lane changes, and tailgating.
+This project investigates safety-aware reinforcement learning for autonomous driving through a controlled experimental study of policy safety, robustness, and generalization. Using HighwayEnv and Proximal Policy Optimization (PPO), the work evaluates whether reward-shaped safety constraints can improve driving behavior while maintaining efficiency across both in-distribution and out-of-distribution traffic conditions.
 
-This project investigates whether explicit safety constraints incorporated through reward shaping can improve driving behavior while preserving navigation efficiency. Using Proximal Policy Optimization (PPO) and a Safety-Constrained PPO variant, the study evaluates policy behavior across varying traffic conditions, safety penalty weights, and out-of-distribution environments.
+Standard reinforcement learning agents often optimize solely for task completion and cumulative reward, which can lead to unsafe driving behaviors such as collisions, aggressive lane changes, and tailgating. This study compares a baseline PPO policy against a Safety-Constrained PPO variant across traffic densities, safety penalty weights, and multi-seed evaluation settings.
 
 The project focuses on three central questions:
 
@@ -115,20 +127,6 @@ The resulting framework provides a reproducible platform for investigating safet
 ### Language
 
 * Python 3.11
-
----
-
-## Repository Resources
-
-* [Repository Guide](docs/REPOSITORY_GUIDE.md)
-* [Reproducibility](docs/REPRODUCIBILITY.md)
-* [Results Summary](docs/RESULTS_SUMMARY.md)
-
-Core reproduction command:
-
-```bash
-scripts/run_core_evaluation.sh
-```
 
 ---
 
@@ -500,39 +498,59 @@ tensorboard --logdir logs
 
 ---
 
-# 🧪 Experiment 1: PPO vs Safe PPO (Completed ✅)
+# 🧪 Experiment 1: PPO vs Safe PPO
 
 ## Objective
-Compare a standard PPO agent (Efficiency-optimized) against a Safe PPO agent (Safety-constrained) using a safety weighting factor of $\lambda = 0.1$.
 
-## Benchmarking Results (100 Episodes)
+Compare a standard PPO agent against a Safety-Constrained PPO agent using a safety weighting factor of $\lambda = 0.1$.
 
-| Metric | Baseline PPO | **Safe PPO ($\lambda=0.1$)** | Improvement |
-| :--- | :--- | :--- | :--- |
-| **Collision Rate** | 5.0% | **2.0%** | **60% Reduction** |
-| **Tailgating Rate** | 15.3% | **8.5%** | **44% Reduction** |
-| **Success Rate** | 95.0% | **98.0%** | **+3.0%** |
-| **Avg Speed** | 20.01 m/s | **20.02 m/s** | **Efficiency Maintained** |
-| **Avg Survival Time** | 29.37s | **29.71s** | **+1.2%** |
+## Benchmarking Results
 
-**Analysis:** In this single-run benchmark, the Safe PPO agent reduced critical safety violations (collisions and tailgating) without any degradation in driving speed or efficiency. The later multi-seed benchmark is more conservative and should be used for statistical claims.
+| Metric | Baseline PPO | Safe PPO ($\lambda=0.1$) | Change |
+| :--- | :---: | :---: | :--- |
+| Collision Rate | 5.0% | 2.0% | 60% reduction |
+| Tailgating Rate | 15.3% | 8.5% | 44% reduction |
+| Success Rate | 95.0% | 98.0% | +3.0 pp |
+| Avg Speed | 20.01 m/s | 20.02 m/s | Maintained |
+| Avg Survival Time | 29.37s | 29.71s | +1.2% |
+
+**Analysis:** In this single-run benchmark, Safe PPO reduced collision and tailgating behavior without reducing driving speed. Later multi-seed validation is used for statistical claims.
 
 ---
 
-# 🧪 Experiment 3: Safety Weight ($\lambda$) Ablation (Completed ✅)
+# 🧪 Experiment 2: Traffic Density Generalization
 
 ## Objective
+
+Evaluate the robustness of the $\lambda = 0.1$ policy across varying traffic densities.
+
+## Results
+
+| Traffic Density | Collision Rate | Success Rate | Avg Speed | Tailgating Rate |
+| :--- | :---: | :---: | :---: | :---: |
+| 20 Vehicles | 2.0% | 98.0% | 20.03 m/s | 5.8% |
+| 50 Vehicles | 8.0% | 92.0% | 20.00 m/s | 17.6% |
+| 100 Vehicles | 2.0% | 98.0% | 20.03 m/s | 19.6% |
+
+**Analysis:** The policy maintained high success rates across traffic densities different from the training setting. Tailgating increased at higher density, indicating that collision avoidance and following distance respond differently to congestion.
+
+---
+
+# 🧪 Experiment 3: Safety Weight ($\lambda$) Ablation
+
+## Objective
+
 Establish the relationship between safety constraint intensity and driving behavior.
 
 ## Single-Run Results
 
 | λ | Collision Rate | Tailgating Rate | Success Rate | Avg Speed |
-| :--- | :--- | :--- | :--- | :--- |
-| **0.0** (Baseline) | 5.0% | 15.3% | 95% | 20.01 m/s |
-| **0.1** (Winner) | **2.0%** | **8.5%** | **98%** | **20.02 m/s** |
-| **0.5** | 2.0% | 12.9% | 98% | 20.02 m/s |
-| **1.0** | 3.0% | 10.0% | 97% | 20.01 m/s |
-| **2.0** | 2.0% | 14.2% | 98% | 20.02 m/s |
+| :--- | :---: | :---: | :---: | :---: |
+| 0.0 | 5.0% | 15.3% | 95% | 20.01 m/s |
+| 0.1 | 2.0% | 8.5% | 98% | 20.02 m/s |
+| 0.5 | 2.0% | 12.9% | 98% | 20.02 m/s |
+| 1.0 | 3.0% | 10.0% | 97% | 20.01 m/s |
+| 2.0 | 2.0% | 14.2% | 98% | 20.02 m/s |
 
 ## Multi-Seed Robustness Check
 
@@ -540,39 +558,54 @@ To test whether the single-run λ trend was stable, all λ values were reevaluat
 
 | λ | Collision Rate | Success Rate | Tailgating Rate | Avg Speed |
 | :--- | :---: | :---: | :---: | :---: |
-| **0.0** | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
-| **0.1** | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
-| **0.5** | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
-| **1.0** | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
-| **2.0** | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
+| 0.0 | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
+| 0.1 | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
+| 0.5 | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
+| 1.0 | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
+| 2.0 | 2.0% ± 2.8 pp | 98.0% ± 2.8 pp | 13.6% ± 5.6 pp | 20.02 ± 0.01 m/s |
 
-## Key Findings
-- **Single-run signal:** The original 100-episode run suggested λ=0.1 was the strongest safety setting.
-- **Multi-seed correction:** The deterministic 5-seed density-50 sweep did not preserve separation between λ values; all policies produced identical aggregate metrics.
-- **Research implication:** The rigorous conclusion is not "λ=0.1 is statistically superior" under this protocol. The stronger conclusion is that the current deterministic policy/evaluation setup is too saturated to distinguish the learned policies at density 50.
-- **Reward accounting:** Reward component analysis still confirms that safety penalties scale with λ, but the deployed deterministic behavior did not change across λ.
-
-## Pareto Frontier Discovery
-The normalized Pareto plot now shows that all λ policies retain the same efficiency and safety under the deterministic density-50 multi-seed protocol. This is useful as a negative control: reward shaping changed reward accounting, but did not measurably change deterministic deployment behavior in this evaluation regime.
+**Analysis:** The original 100-episode run suggested λ=0.1 as the strongest safety setting. The deterministic 5-seed density-50 sweep did not preserve separation between λ values, suggesting that this evaluation protocol is saturated or insufficiently diverse for distinguishing the learned policies.
 
 ---
 
-# 🧪 Experiment 4: Training Stability & Convergence Analysis
-
-## Methodology
-In this phase, we analyze the training dynamics of the PPO and Safe PPO agents using representative reward and collision-rate curves across training steps.
-
-## Observations
-- **Baseline PPO:** The representative curve shows faster reward convergence early in training.
-- **Safe PPO ($\lambda=0.1$):** The representative curve shows a slower initial reward trajectory as safety penalties are introduced.
-- **Validation caveat:** The final deterministic multi-seed benchmark did not confirm a statistically significant collision-rate advantage for λ=0.1 at density 50, so the learning-curve figure should be interpreted as training-dynamics context rather than proof of final policy superiority.
-
----
-
-# 📊 Statistical Validation: Multi-Seed Benchmark (Completed ✅)
+# 🧪 Experiment 4: Training Dynamics Analysis
 
 ## Objective
-Test whether the observed single-run collision reduction remains statistically significant across 5 independent seed groups. Evaluation is conducted at **Density 50** with 20 episodes per seed group.
+
+Compare PPO and Safe PPO learning dynamics using representative reward and collision-rate curves across training steps.
+
+## Observations
+
+* Baseline PPO shows faster reward convergence early in training.
+* Safe PPO shows a slower initial reward trajectory as safety penalties are introduced.
+* The learning-curve figure provides training context; final policy superiority should be judged using multi-seed evaluation.
+
+---
+
+# 🧪 Experiment 5: Out-of-Distribution Robustness Testing
+
+## Objective
+
+Evaluate whether a policy trained with 30 vehicles can generalize to substantially denser traffic.
+
+## Results
+
+| Traffic Density | Success Rate | Collision Rate | Avg Speed | Tailgating Rate |
+| :--- | :---: | :---: | :---: | :---: |
+| 150 | 97.14% | 2.86% | 20.02 m/s | 9.0% |
+| 200 | 94.29% | 5.71% | 19.99 m/s | 16.3% |
+| 250 | 97.14% | 2.86% | 20.03 m/s | 15.1% |
+| 300 | 97.14% | 2.86% | 20.02 m/s | 9.4% |
+
+**Analysis:** The model maintained 94–97% success rates up to 10× the training density while preserving average speed. Performance degradation was non-monotonic, with 200 vehicles proving more challenging than 250 or 300 vehicles.
+
+---
+
+# 🧪 Experiment 6: Multi-Seed Statistical Validation
+
+## Objective
+
+Test whether the observed single-run collision reduction remains statistically significant across 5 independent seed groups at density 50.
 
 ## Final Results
 
@@ -582,60 +615,7 @@ Test whether the observed single-run collision reduction remains statistically s
 | Tailgating Rate | 13.6% | 13.6% | 0.500 | Not significant |
 | Safety Violation Score | 0.336 | 0.336 | 0.500 | Not significant |
 
-**Interpretation:** The multi-seed benchmark does not support a statistically significant safety improvement for λ=0.1 under deterministic evaluation at density 50. This is an important research result: it prevents overclaiming from the earlier single-run benchmark and identifies the next experimental need, which is a harder or more diverse evaluation protocol.
-
----
-
-# 🚀 Final Research Conclusions
-
-## 1. Safety-Efficiency Optimization
-The initial single-run benchmark suggested that explicit safety constraints could reduce collisions without slowing the agent. The completed multi-seed benchmark is more conservative: it did not confirm a statistically significant λ=0.1 improvement at density 50, while still showing that all policies maintain high success and stable cruising speed.
-
-## 2. Non-Monotonic Robustness
-Out-of-Distribution (OOD) testing revealed that the agent is remarkably robust up to 10x training density (300 vehicles). However, performance degradation is non-monotonic: intermediate densities (200 vehicles) induced greater decision complexity (higher collision rate) than highly saturated environments (300 vehicles), suggesting that uniform traffic flow at high density actually simplifies safety maintenance.
-
-## 3. Statistical Rigor
-The project now includes error bars, bootstrap confidence intervals, Welch tests, and explicit negative findings. This improves the credibility of the study because it distinguishes promising single-run behavior from statistically supported claims.
-
-## 4. Scalability
-Trained on only 30 vehicles, the policy generalized to 300 vehicles with a 97% success rate. This proves the agent learned fundamental kinematic rules for collision avoidance rather than memorizing traffic patterns.
-
----
-
----
-
-# 🧪 Experiment 2: Traffic Density Generalization (Completed ✅)
-
-## Objective
-Evaluate the robustness of the $\lambda = 0.1$ policy across varying traffic densities (20, 50, and 100 vehicles).
-
-## Results
-
-| Traffic Density | Collision Rate | Success Rate | Avg Speed | Tailgating Rate |
-| :--- | :---: | :---: | :---: | :---: |
-| **20 Vehicles** | 2.0% | 98.0% | 20.03 m/s | 5.8% |
-| **50 Vehicles** | 8.0% | 92.0% | 20.00 m/s | 17.6% |
-| **100 Vehicles** | **2.0%** | **98.0%** | **20.03 m/s** | **19.6%** |
-
-**Analysis:** The agent generalized effectively across densities, maintaining high success rates even at 3.3x the training density. While collision avoidance remained robust, tailgating increased at higher densities, indicating a prioritized safety hierarchy.
-
----
-
-# 🧪 Experiment 5: Out-of-Distribution (OOD) Stress Test (Completed ✅)
-
-## Objective
-Quantify the "Breaking Point" of the learned policy by exposing it to extreme congestion (150-300 vehicles).
-
-## Final Robustness Curve
-
-| Traffic Density | Success Rate | Collision Rate | Avg Speed | Tailgating Rate |
-| :--- | :---: | :---: | :---: | :---: |
-| **150** (5x Training) | 97.14% | 2.86% | 20.02 m/s | 9.0% |
-| **200** (6.7x Training) | 94.29% | 5.71% | 19.99 m/s | 16.3% |
-| **250** (8.3x Training) | 97.14% | 2.86% | 20.03 m/s | 15.1% |
-| **300** (10x Training) | **97.14%** | **2.86%** | **20.02 m/s** | **9.4%** |
-
-**Analysis:** Even at **10x the training density (300 vehicles)**, the model maintained a 97% success rate and full cruising speed (20 m/s). Notably, performance degradation was **non-monotonic**: the 200-vehicle scenario proved more challenging than both 250 and 300 vehicles. This suggests that intermediate traffic density induces higher decision complexity than highly saturated, uniform traffic.
+**Interpretation:** The multi-seed benchmark does not support a statistically significant safety improvement for λ=0.1 under deterministic evaluation at density 50. This is an important research result: it prevents overclaiming from the earlier single-run benchmark and motivates harder or more diverse evaluation protocols.
 
 
 ---
@@ -675,6 +655,30 @@ for every experiment.
 The project demonstrates the importance of evaluating reinforcement learning policies beyond single-run performance. The initial PPO vs Safe PPO benchmark showed meaningful safety gains without speed loss, while the deterministic multi-seed benchmark revealed that those gains were not statistically significant under the density-50 evaluation protocol.
 
 This distinction is central to the project: it treats Safe RL as an empirical research problem rather than only an implementation task. The final analysis includes error bars, statistical tests, ablation studies, behavior analysis, and OOD robustness testing.
+
+---
+
+# Conclusions
+
+1. Reward-shaped Safe PPO produced promising single-run safety gains without reducing average speed.
+2. The learned policy generalized from 30 training vehicles to 300 evaluation vehicles while maintaining high success rates.
+3. Traffic difficulty was non-monotonic: intermediate congestion produced stronger degradation than some higher-density settings.
+4. Multi-seed validation did not confirm a statistically significant λ=0.1 advantage under deterministic density-50 evaluation, highlighting the need for harder stochastic evaluation.
+5. The project provides a reproducible Safe RL evaluation framework with ablations, robustness testing, behavior analysis, and statistical validation.
+
+---
+
+## Repository Resources
+
+* [Repository Guide](docs/REPOSITORY_GUIDE.md)
+* [Reproducibility](docs/REPRODUCIBILITY.md)
+* [Results Summary](docs/RESULTS_SUMMARY.md)
+
+Core reproduction command:
+
+```bash
+scripts/run_core_evaluation.sh
+```
 
 ---
 
