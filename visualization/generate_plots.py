@@ -24,6 +24,14 @@ def _save(path):
     print(f"Saved {path}")
 
 
+def _save_all(paths):
+    plt.tight_layout()
+    for path in paths:
+        plt.savefig(path, dpi=300)
+        print(f"Saved {path}")
+    plt.close()
+
+
 def _lambda_from_label(label):
     if pd.isna(label):
         return np.nan
@@ -506,29 +514,36 @@ def plot_performance_heatmap():
     _save(f"{PLOTS_DIR}/performance_heatmap.png")
 
 
+def _scaled_policy_scores(collision, tailgating, success, speed, survival):
+    return [
+        np.clip(success, 0.0, 1.0),
+        np.clip(1 - collision, 0.0, 1.0),
+        np.clip(1 - tailgating, 0.0, 1.0),
+        np.clip(speed / 25.0, 0.0, 1.0),
+        np.clip(survival / 30.0, 0.0, 1.0),
+    ]
+
+
+def _policy_scores_from_summary(row):
+    collision = row.get("collision_rate", row.get("collision", 0.0))
+    tailgating = row.get("tailgating_rate", row.get("tailgating", 0.0))
+    success = row.get("success_rate", row.get("success", 1 - collision))
+    speed = row.get("avg_speed", row.get("speed", 20.0))
+    survival = row.get("avg_survival_time", row.get("survival_time", 30.0))
+    return _scaled_policy_scores(collision, tailgating, success, speed, survival)
+
+
 def _policy_scores(path, fallback_summary=False):
     df = pd.read_csv(path)
     if fallback_summary:
-        row = df.mean(numeric_only=True)
-        collision = row.get("collision_rate", row.get("collision", 0.0))
-        tailgating = row.get("tailgating_rate", row.get("tailgating", 0.0))
-        success = row.get("success_rate", row.get("success", 1 - collision))
-        speed = row.get("avg_speed", row.get("speed", 20.0))
-        survival = row.get("avg_survival_time", row.get("survival_time", 30.0))
-    else:
-        collision = df.get("collision", pd.Series(0)).mean()
-        tailgating = df.get("tailgating_rate", df.get("tailgating", pd.Series(0))).mean()
-        success = df.get("success", pd.Series(1 - collision, index=df.index)).mean()
-        speed = df.get("speed", pd.Series(20.0, index=df.index)).mean()
-        survival = df.get("survival_time", pd.Series(30.0, index=df.index)).mean()
+        return _policy_scores_from_summary(df.mean(numeric_only=True))
 
-    return [
-        success,
-        1 - collision,
-        1 - min(1.0, tailgating),
-        min(1.2, speed / 25.0),
-        min(1.2, survival / 30.0),
-    ]
+    collision = df.get("collision", pd.Series(0, index=df.index)).mean()
+    tailgating = df.get("tailgating_rate", df.get("tailgating", pd.Series(0, index=df.index))).mean()
+    success = df.get("success", pd.Series(1 - collision, index=df.index)).mean()
+    speed = df.get("speed", pd.Series(20.0, index=df.index)).mean()
+    survival = df.get("survival_time", pd.Series(30.0, index=df.index)).mean()
+    return _scaled_policy_scores(collision, tailgating, success, speed, survival)
 
 
 def _policy_scores_from_df(df):
@@ -537,57 +552,112 @@ def _policy_scores_from_df(df):
     success = df.get("success", pd.Series(1 - collision, index=df.index)).mean()
     speed = df.get("speed", pd.Series(20.0, index=df.index)).mean()
     survival = df.get("survival_time", pd.Series(30.0, index=df.index)).mean()
-
-    return [
-        success,
-        1 - collision,
-        1 - min(1.0, tailgating),
-        min(1.2, speed / 25.0),
-        min(1.2, survival / 30.0),
-    ]
+    return _scaled_policy_scores(collision, tailgating, success, speed, survival)
 
 
 def plot_radar_chart():
     labels = ["Success", "Collision Avoid.", "Tailgating Avoid.", "Efficiency", "Survival"]
-    lambda_path = f"{RESULTS_DIR}/lambda_multi_seed_detailed.csv"
-    if os.path.exists(lambda_path):
-        lambda_df = pd.read_csv(lambda_path)
-        b_df = lambda_df[lambda_df["lambda"].astype(float) == 0.0]
-        s_df = lambda_df[lambda_df["lambda"].astype(float) == 0.1]
-        if b_df.empty or s_df.empty:
-            print("Skipping radar chart: lambda 0.0/0.1 rows missing.")
-            return
-        baseline = _policy_scores_from_df(b_df)
-        safe = _policy_scores_from_df(s_df)
-    else:
-        baseline_path = f"{RESULTS_DIR}/multi_seed/baseline_detailed.csv"
-        safe_path = f"{RESULTS_DIR}/multi_seed/safeppo_detailed.csv"
-        fallback = False
-        if not os.path.exists(baseline_path) or not os.path.exists(safe_path):
-            baseline_path = f"{RESULTS_DIR}/baseline_summary.csv"
-            safe_path = f"{RESULTS_DIR}/safeppo_summary.csv"
-            fallback = True
-        if not os.path.exists(baseline_path) or not os.path.exists(safe_path):
-            print("Skipping radar chart: baseline/safe summaries missing.")
-            return
-        baseline = _policy_scores(baseline_path, fallback_summary=fallback)
-        safe = _policy_scores(safe_path, fallback_summary=fallback)
+    table_labels = ["Success", "Collision Avoidance", "Tailgating Avoidance", "Efficiency", "Survival"]
+    baseline = None
+    safe = None
+    comparison_path = f"{RESULTS_DIR}/comparison.csv"
+    if os.path.exists(comparison_path):
+        comparison_df = pd.read_csv(comparison_path)
+        if "Model" in comparison_df.columns:
+            baseline_df = comparison_df[
+                comparison_df["Model"].str.contains("Baseline", case=False, na=False)
+            ]
+            safe_df = comparison_df[
+                comparison_df["Model"].str.contains("Safe", case=False, na=False)
+            ]
+            if not baseline_df.empty and not safe_df.empty:
+                baseline = _policy_scores_from_summary(baseline_df.iloc[0])
+                safe = _policy_scores_from_summary(safe_df.iloc[0])
+
+    if baseline is None or safe is None:
+        lambda_path = f"{RESULTS_DIR}/lambda_multi_seed_detailed.csv"
+        if os.path.exists(lambda_path):
+            lambda_df = pd.read_csv(lambda_path)
+            b_df = lambda_df[lambda_df["lambda"].astype(float) == 0.0]
+            s_df = lambda_df[lambda_df["lambda"].astype(float) == 0.1]
+            if b_df.empty or s_df.empty:
+                print("Skipping radar chart: lambda 0.0/0.1 rows missing.")
+                return
+            baseline = _policy_scores_from_df(b_df)
+            safe = _policy_scores_from_df(s_df)
+        else:
+            baseline_path = f"{RESULTS_DIR}/multi_seed/baseline_detailed.csv"
+            safe_path = f"{RESULTS_DIR}/multi_seed/safeppo_detailed.csv"
+            fallback = False
+            if not os.path.exists(baseline_path) or not os.path.exists(safe_path):
+                baseline_path = f"{RESULTS_DIR}/baseline_summary.csv"
+                safe_path = f"{RESULTS_DIR}/safeppo_summary.csv"
+                fallback = True
+            if not os.path.exists(baseline_path) or not os.path.exists(safe_path):
+                print("Skipping radar chart: baseline/safe summaries missing.")
+                return
+            baseline = _policy_scores(baseline_path, fallback_summary=fallback)
+            safe = _policy_scores(safe_path, fallback_summary=fallback)
+    baseline_values = baseline.copy()
+    safe_values = safe.copy()
+    radar_table = pd.DataFrame({
+        "Metric": table_labels,
+        "PPO (%)": np.round(np.array(baseline_values) * 100, 1),
+        "Safe PPO (%)": np.round(np.array(safe_values) * 100, 1),
+    })
+    radar_table.to_csv(f"{SUPPLEMENTARY_DIR}/radar_comparison_values.csv", index=False)
+
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
-    baseline += baseline[:1]
-    safe += safe[:1]
+    baseline = baseline_values + baseline_values[:1]
+    safe = safe_values + safe_values[:1]
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"polar": True})
+    fig = plt.figure(figsize=(12, 8))
+    grid = fig.add_gridspec(1, 2, width_ratios=[2.2, 1.15])
+    ax = fig.add_subplot(grid[0, 0], polar=True)
+    table_ax = fig.add_subplot(grid[0, 1])
     ax.fill(angles, baseline, color="tab:red", alpha=0.25, label="PPO")
     ax.plot(angles, baseline, color="tab:red", linewidth=2)
     ax.fill(angles, safe, color="tab:blue", alpha=0.25, label="Safe PPO")
     ax.plot(angles, safe, color="tab:blue", linewidth=2)
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(labels)
-    ax.set_yticklabels([])
+    ax.set_ylim(0, 1)
+    ax.set_yticks([0.25, 0.5, 0.75, 1.0])
+    ax.set_yticklabels(["25%", "50%", "75%", "100%"], fontsize=8)
+    ax.grid(True, linestyle=":", alpha=0.7)
     ax.set_title("PPO vs Safe PPO Performance Fingerprint", y=1.08)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.25, 1.1))
-    _save(f"{SUPPLEMENTARY_DIR}/radar_comparison.png")
+    ax.legend(loc="upper right", bbox_to_anchor=(1.18, 1.08))
+
+    table_ax.axis("off")
+    table_ax.set_title("Metric Values", fontsize=12, pad=12)
+    table = table_ax.table(
+        cellText=[
+            [row["Metric"], f"{row['PPO (%)']:.1f}%", f"{row['Safe PPO (%)']:.1f}%"]
+            for _, row in radar_table.iterrows()
+        ],
+        colLabels=["Metric", "PPO", "Safe PPO"],
+        loc="center",
+        cellLoc="center",
+        colLoc="center",
+        colWidths=[0.58, 0.24, 0.3],
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(9)
+    table.scale(1.0, 1.6)
+    for (row, col), cell in table.get_celld().items():
+        cell.set_edgecolor("#CCCCCC")
+        if row == 0:
+            cell.set_text_props(weight="bold")
+            cell.set_facecolor("#F2F2F2")
+        elif col == 1:
+            cell.set_facecolor("#FCE8E8")
+        elif col == 2:
+            cell.set_facecolor("#E8F1FA")
+    _save_all([
+        f"{PLOTS_DIR}/ppo_vs_safeppo_fingerprint.png",
+        f"{SUPPLEMENTARY_DIR}/radar_comparison.png",
+    ])
 
 
 def plot_behavior_analysis():

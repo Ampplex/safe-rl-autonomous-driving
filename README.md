@@ -172,11 +172,25 @@ The resulting framework provides a reproducible platform for investigating safet
 
 ### Experiment 1: PPO vs Safe PPO
 
-The Safety-Constrained PPO agent reduced collision and tailgating behavior in the initial benchmark while preserving driving efficiency.
+The Safety-Constrained PPO agent consistently outperformed the baseline PPO policy across all safety-related metrics while preserving driving efficiency.
 
-![PPO vs Safe PPO Benchmark](results/plots/ppo_vs_safeppo_benchmark.png)
+<p align="center">
+  <img src="results/plots/ppo_vs_safeppo_fingerprint.png" width="900">
+</p>
 
-The detailed comparison table is included in Experiment 1 below.
+**Figure: PPO vs Safe PPO Performance Fingerprint.** The radar chart summarizes the overall behavioral characteristics of both policies. Safe PPO achieved higher success rates, collision avoidance, tailgating avoidance, and survival rates while maintaining essentially identical driving efficiency.
+
+### Key Observations
+
+* **Success Rate:** Improved from **95.0%** to **98.0%**
+* **Collision Avoidance:** Improved from **95.0%** to **98.0%**
+* **Tailgating Avoidance:** Improved from **84.7%** to **91.5%**
+* **Efficiency:** Maintained (**80.0% → 80.1%**)
+* **Survival Rate:** Improved from **97.9%** to **99.0%**
+
+The largest improvement was observed in **tailgating avoidance (+6.8 percentage points)**, indicating that reward-shaped safety constraints encouraged more proactive and defensive driving behavior rather than merely reducing collisions after unsafe situations occurred.
+
+Importantly, the improvements in safety metrics were achieved without sacrificing driving efficiency, demonstrating that safety-aware reward shaping can improve policy behavior while preserving task performance.
 
 ---
 

@@ -1,0 +1,6 @@
+Metric,PPO (%),Safe PPO (%)
+Success,95.0,98.0
+Collision Avoidance,95.0,98.0
+Tailgating Avoidance,84.7,91.5
+Efficiency,80.0,80.1
+Survival,97.9,99.0
